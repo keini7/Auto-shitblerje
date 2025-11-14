@@ -11,7 +11,7 @@ import {
 
 import { getCarById, getRelatedCars } from "../../api/cars";
 import CarCard from "../../components/CarCard";
-import useFavorites from "../../hooks/useFavorites";
+import useFavorites from "../../api/useFavorites";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function CarDetailsScreen({ route, navigation }) {

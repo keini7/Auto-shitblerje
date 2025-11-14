@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import useFavorites from "../hooks/useFavorites";
+import useFavorites from "../api/useFavorites";
 
 export default function CarCard({ car, navigation: navProp }) {
   // Nese navigation vjen si prop nga screen → përdore
