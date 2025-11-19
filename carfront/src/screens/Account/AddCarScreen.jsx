@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 
 import { useAuth } from "../../context/AuthContext";
 import { uploadCarImage, createCar } from "../../api/cars";
-import { BASE_URL } from "../../constans/config";
+import { BASE_URL } from "../../constants/config";
 
 export default function AddCarScreen({ navigation }) {
   const { token } = useAuth();

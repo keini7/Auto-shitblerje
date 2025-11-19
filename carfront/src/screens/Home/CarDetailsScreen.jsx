@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getCarById, getRelatedCars } from "../../api/cars";
 import CarCard from "../../components/CarCard";
-import { BASE_URL } from "../../api/config";
+import { BASE_URL } from "../../constants/config";
 
 import { useFavoritesContext } from "../../context/FavoritesContext";
 

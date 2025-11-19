@@ -2,12 +2,13 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import useFavorites from "../api/useFavorites";
+
+import { useFavoritesContext } from "../context/FavoritesContext";
 import { API_URL } from "../constants/config";
 
 export default function CarCard({ car, navigation: navProp }) {
   const navigation = navProp || useNavigation();
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toggleFavorite, isFavorite } = useFavoritesContext();
 
   const fav = isFavorite(car._id);
 
@@ -29,7 +30,7 @@ export default function CarCard({ car, navigation: navProp }) {
           {car.title}
         </Text>
 
-        <TouchableOpacity onPress={() => toggleFavorite(car._id)}>
+        <TouchableOpacity onPress={() => toggleFavorite(car)}>
           <Ionicons
             name={fav ? "heart" : "heart-outline"}
             size={22}
