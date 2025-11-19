@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import SortModal from "../../components/SortModal";
 import { searchCars } from "../../api/cars";
 import CarCard from "../../components/CarCard";
 
-export default function SearchScreen() {
+export default function SearchScreen({ navigation }) {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState("latest");
@@ -28,16 +28,19 @@ export default function SearchScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
 
+  // =====================
+  // LOAD CARS
+  // =====================
   const loadCars = async (reset = false) => {
-    if (loading || isEnd) return;
+    if (loading || (isEnd && !reset)) return;
 
     setLoading(true);
 
     const query = {
       search,
       sort,
-      page: reset ? 1 : page,
       limit: 15,
+      page: reset ? 1 : page,
       ...filters,
     };
 
@@ -47,7 +50,7 @@ export default function SearchScreen() {
       if (reset) {
         setCars(data.cars);
         setPage(2);
-        setIsEnd(false);
+        setIsEnd(data.cars.length === 0);
       } else {
         if (data.cars.length === 0) setIsEnd(true);
         setCars((prev) => [...prev, ...data.cars]);
@@ -60,18 +63,41 @@ export default function SearchScreen() {
     }
   };
 
-  const applyFilters = (f) => {
-    setFilters(f);
+  // =====================
+  // FILTERS
+  // =====================
+  const applyFilters = (newFilters) => {
+    setFilters(newFilters);
     setShowFilters(false);
+    setIsEnd(false);
     loadCars(true);
   };
 
+  // =====================
+  // SORT
+  // =====================
   const applySort = (option) => {
     setSort(option);
     setShowSort(false);
+    setIsEnd(false);
     loadCars(true);
   };
 
+  // =====================
+  // SEARCH (DEBOUNCE 300ms)
+  // =====================
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setIsEnd(false);
+      loadCars(true);
+    }, 300);
+
+    return () => clearTimeout(delay);
+  }, [search]);
+
+  // =====================
+  // FIRST LOAD
+  // =====================
   useEffect(() => {
     loadCars(true);
   }, []);
@@ -87,7 +113,6 @@ export default function SearchScreen() {
           placeholderTextColor="#666"
           value={search}
           onChangeText={setSearch}
-          onSubmitEditing={() => loadCars(true)}
           className="text-white flex-1 ml-3"
         />
       </View>
@@ -115,9 +140,11 @@ export default function SearchScreen() {
       <FlatList
         data={cars}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <CarCard car={item} />}
+        renderItem={({ item }) => (
+          <CarCard car={item} navigation={navigation} />
+        )}
         onEndReached={() => loadCars(false)}
-        onEndReachedThreshold={0.4}
+        onEndReachedThreshold={0.3}
         ListFooterComponent={
           loading ? (
             <ActivityIndicator size="large" color="#00aaff" className="my-4" />

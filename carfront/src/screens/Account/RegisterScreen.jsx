@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import { registerUser } from "../../api/auth";
 import { useAuth } from "../../context/AuthContext";
 
@@ -21,29 +22,61 @@ export default function RegisterScreen({ navigation }) {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validate = () => {
+    if (!name.trim()) return "Emri është i detyrueshëm.";
+    if (!email.trim()) return "Email është i detyrueshëm.";
+
+    const emailRegex = /\S+@\S+\.\S+/;
+    if (!emailRegex.test(email.trim())) return "Email nuk është valid.";
+
+    if (!password.trim()) return "Password është i detyrueshëm.";
+    if (password.trim().length < 6)
+      return "Password duhet të ketë të paktën 6 karaktere.";
+
+    return null;
+  };
+
   const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert("Gabim", "Plotëso emër, email dhe password.");
+    const error = validate();
+    if (error) {
+      Alert.alert("Gabim", error);
       return;
     }
 
     try {
       setLoading(true);
-      const data = await registerUser(name, email, password, phone);
 
+      const data = await registerUser(
+        name.trim(),
+        email.trim(),
+        password.trim(),
+        phone.trim()
+      );
+
+      // ruaj user të plotë dhe token
       await login(
-        {
-          _id: data._id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-        },
+        data.user ?? data,
         data.token
       );
 
-      navigation.replace("AccountHome");
+      // NAVIGIMI I RREGULLUAR
+      navigation.navigate("AccountTab", {
+        screen: "AccountHome",
+      });
+
+      // reset inputet
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhone("");
+
     } catch (err) {
-      Alert.alert("Gabim", err.message);
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Regjistrimi dështoi. Provo përsëri.";
+
+      Alert.alert("Gabim", message);
     } finally {
       setLoading(false);
     }
@@ -74,6 +107,7 @@ export default function RegisterScreen({ navigation }) {
         <TextInput
           placeholder="Email"
           placeholderTextColor="#666"
+          autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
@@ -114,11 +148,13 @@ export default function RegisterScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* REGISTER BUTTON */}
+      {/* REGISTER */}
       <TouchableOpacity
         onPress={handleRegister}
         disabled={loading}
-        className="bg-blue-600 p-4 rounded-xl items-center"
+        className={`p-4 rounded-xl items-center ${
+          loading ? "bg-gray-700" : "bg-blue-600"
+        }`}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />

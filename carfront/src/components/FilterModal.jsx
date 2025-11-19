@@ -40,14 +40,11 @@ export default function FilterModal({ visible, onClose, onApply }) {
   }, [visible]);
 
   useEffect(() => {
-    if (!brand) {
-      setModels([]);
-      return;
-    }
+    if (!brand) return setModels([]);
 
     (async () => {
-      const data = await getModels(brand);
-      setModels(data);
+      const m = await getModels(brand);
+      setModels(m);
     })();
   }, [brand]);
 

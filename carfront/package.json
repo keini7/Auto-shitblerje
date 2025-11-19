@@ -1,5 +1,5 @@
 {
-  "name": "car-marketplace",
+  "name": "carfront",
   "version": "1.0.0",
   "main": "App.js",
   "scripts": {
@@ -14,10 +14,10 @@
     "@react-navigation/bottom-tabs": "^7.8.4",
     "@react-navigation/native": "^7.1.19",
     "@react-navigation/native-stack": "^7.6.2",
-    "@react-navigation/stack": "^7.6.3",
     "expo": "^54.0.0",
     "expo-image-picker": "~17.0.1",
     "expo-status-bar": "~1.12.1",
+    "nativewind": "4.0.36",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.1",

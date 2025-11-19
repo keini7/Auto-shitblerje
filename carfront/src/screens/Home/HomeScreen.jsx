@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, FlatList, ActivityIndicator, Text } from "react-native";
+
 import { getCars } from "../../api/cars";
 import CarCard from "../../components/CarCard";
 
@@ -8,32 +9,38 @@ export default function HomeScreen({ navigation }) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [endReached, setEndReached] = useState(false);
 
-  // Load cars from backend
   const loadCars = async () => {
     try {
       const data = await getCars(page);
+
+      if (!data.cars || data.cars.length === 0) {
+        setEndReached(true);
+        setLoading(false);
+        setLoadingMore(false);
+        return;
+      }
 
       if (page === 1) {
         setCars(data.cars);
       } else {
         setCars((prev) => [...prev, ...data.cars]);
       }
-
-      setLoading(false);
-      setLoadingMore(false);
     } catch (error) {
       console.log("Error loading cars:", error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  // First load + pagination
   useEffect(() => {
     loadCars();
   }, [page]);
 
   const loadMoreCars = () => {
-    if (!loadingMore) {
+    if (!loadingMore && !endReached) {
       setLoadingMore(true);
       setPage((prev) => prev + 1);
     }
@@ -53,14 +60,11 @@ export default function HomeScreen({ navigation }) {
       <FlatList
         data={cars}
         renderItem={({ item }) => (
-          <CarCard
-            car={item}
-            navigation={navigation}
-          />
+          <CarCard car={item} navigation={navigation} />
         )}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => String(item._id)}
         onEndReached={loadMoreCars}
-        onEndReachedThreshold={0.2}
+        onEndReachedThreshold={0.3}
         ListFooterComponent={
           loadingMore ? (
             <ActivityIndicator size="small" color="#00aaff" />

@@ -9,10 +9,12 @@ import {
   Linking,
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
 import { getCarById, getRelatedCars } from "../../api/cars";
 import CarCard from "../../components/CarCard";
-import useFavorites from "../../api/useFavorites";
-import { Ionicons } from "@expo/vector-icons";
+import { BASE_URL } from "../../api/config";
+
+import { useFavoritesContext } from "../../context/FavoritesContext";
 
 export default function CarDetailsScreen({ route, navigation }) {
   const { id } = route.params;
@@ -21,23 +23,22 @@ export default function CarDetailsScreen({ route, navigation }) {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toggleFavorite, isFavorite } = useFavoritesContext();
 
-  // Load data
   const loadCarData = async () => {
     try {
-      const data = await getCarById(id);
-      const rel = await getRelatedCars(id);
+      const details = await getCarById(id);
+      const suggestions = await getRelatedCars(id);
 
-      setCar(data);
-      setRelated(rel);
-      setLoading(false);
+      setCar(details ?? null);
+      setRelated(suggestions ?? []);
     } catch (err) {
-      console.log("Error loading car details:", err);
+      console.log("Error loading car:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Re-load when id changes
   useEffect(() => {
     setLoading(true);
     loadCarData();
@@ -57,7 +58,7 @@ export default function CarDetailsScreen({ route, navigation }) {
   return (
     <ScrollView className="flex-1 bg-black">
 
-      {/* PHOTO GALLERY */}
+      {/* Photos */}
       {car.images?.length > 0 && (
         <ScrollView
           horizontal
@@ -68,7 +69,7 @@ export default function CarDetailsScreen({ route, navigation }) {
           {car.images.map((img, index) => (
             <Image
               key={index}
-              source={{ uri: `http://192.168.1.216:8000${img}` }}
+              source={{ uri: `${BASE_URL}${img}` }}
               className="w-full h-72"
               resizeMode="cover"
             />
@@ -78,13 +79,13 @@ export default function CarDetailsScreen({ route, navigation }) {
 
       <View className="p-4">
 
-        {/* TITLE + FAVORITE BUTTON */}
+        {/* Title + Favorites */}
         <View className="flex-row justify-between items-center mb-3">
           <Text className="text-white text-2xl font-bold flex-1 mr-3">
             {car.title}
           </Text>
 
-          <TouchableOpacity onPress={() => toggleFavorite(car._id)}>
+          <TouchableOpacity onPress={() => toggleFavorite(car)}>
             <Ionicons
               name={fav ? "heart" : "heart-outline"}
               size={30}
@@ -106,12 +107,12 @@ export default function CarDetailsScreen({ route, navigation }) {
         {/* SPECIFICATIONS */}
         <View className="bg-gray-800 p-3 rounded-xl mb-4">
           <Text className="text-white">⛽ Fuel: {car.fuel}</Text>
-          <Text className="text-white">⚙ Transmission: {car.transmission}</Text>
+          <Text className="text-white">⚙ Transmision: {car.transmission}</Text>
           <Text className="text-white">🚗 Body: {car.body_type}</Text>
           <Text className="text-white">📍 Location: {car.location}</Text>
           <Text className="text-white">🛣 Mileage: {car.mileage} km</Text>
           <Text className="text-white">
-            📅 Posted: {new Date(car.created_at).toLocaleDateString()}
+            📅 Posted: {new Date(car.createdAt ?? car.created_at).toLocaleDateString()}
           </Text>
         </View>
 
@@ -123,7 +124,7 @@ export default function CarDetailsScreen({ route, navigation }) {
           </Text>
         </View>
 
-        {/* SELLER INFO */}
+        {/* SELLER INFORMATION */}
         <View className="bg-gray-900 p-4 rounded-xl mb-6">
           <Text className="text-white text-lg font-bold mb-2">Shitësi</Text>
 
@@ -133,24 +134,30 @@ export default function CarDetailsScreen({ route, navigation }) {
 
           <TouchableOpacity
             className="bg-blue-600 p-3 rounded-xl"
-            onPress={() => Linking.openURL(`tel:${car.seller?.phone}`)}
+            onPress={() =>
+              Linking.openURL(
+                Platform.OS === "ios"
+                  ? `telprompt:${car.seller?.phone}`
+                  : `tel:${car.seller?.phone}`
+              )
+            }
           >
             <Text className="text-white text-center text-lg">📞 Kontakto</Text>
           </TouchableOpacity>
         </View>
 
-        {/* RELATED CARS */}
-        <Text className="text-white text-xl font-bold mb-3">Të ngjashme</Text>
+        {/* RELATED */}
+        <Text className="text-white text-xl font-bold mb-3">
+          Të ngjashme
+        </Text>
 
         {related.length === 0 ? (
-          <Text className="text-gray-500 mb-10">Nuk ka makina të ngjashme.</Text>
+          <Text className="text-gray-500 mb-10">
+            Nuk ka makina të ngjashme.
+          </Text>
         ) : (
           related.map((item) => (
-            <CarCard
-              key={item._id}
-              car={item}
-              navigation={navigation}
-            />
+            <CarCard key={item._id} car={item} navigation={navigation} />
           ))
         )}
       </View>

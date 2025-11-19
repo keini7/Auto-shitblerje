@@ -9,9 +9,20 @@ const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+      }}
+    >
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      <Stack.Screen name="CarDetails" component={CarDetailsScreen} />
+      <Stack.Screen
+        name="CarDetails"
+        component={CarDetailsScreen}
+        options={{
+          // Tab bar can be hidden here in future
+        }}
+      />
     </Stack.Navigator>
   );
 }

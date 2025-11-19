@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import { loginUser } from "../../api/auth";
 import { useAuth } from "../../context/AuthContext";
 
@@ -20,28 +21,31 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert("Gabim", "Plotëso email dhe password.");
       return;
     }
 
     try {
       setLoading(true);
-      const data = await loginUser(email, password);
 
-      await login(
-        {
-          _id: data._id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-        },
-        data.token
-      );
+      const data = await loginUser(email.trim(), password.trim());
 
-      navigation.replace("AccountHome");
+      // login ruan user-in dhe token-in
+      await login(data.user ?? data, data.token);
+
+      // navigim i rregulluar
+      navigation.navigate("AccountTab", {
+        screen: "AccountHome",
+      });
+
     } catch (err) {
-      Alert.alert("Gabim", err.message);
+      const message =
+        err?.message ||
+        err?.response?.data?.message ||
+        "Nuk u krye dot kyçja. Provo përsëri.";
+
+      Alert.alert("Gabim", message);
     } finally {
       setLoading(false);
     }
@@ -61,6 +65,7 @@ export default function LoginScreen({ navigation }) {
           placeholder="Email"
           placeholderTextColor="#666"
           keyboardType="email-address"
+          autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
           className="text-white flex-1 ml-3"
@@ -87,7 +92,7 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* LOGIN BUTTON */}
+      {/* LOGIN */}
       <TouchableOpacity
         onPress={handleLogin}
         disabled={loading}

@@ -7,12 +7,14 @@ import {
   ScrollView,
   Image,
   Alert,
+  ActivityIndicator,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 import { useAuth } from "../../context/AuthContext";
-import { uploadCarImage } from "../../api/upload";
-import { createCar } from "../../api/cars";
+import { uploadCarImage, createCar } from "../../api/cars";
+import { BASE_URL } from "../../constans/config";
 
 export default function AddCarScreen({ navigation }) {
   const { token } = useAuth();
@@ -55,17 +57,24 @@ export default function AddCarScreen({ navigation }) {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
+      quality: 0.8,
     });
 
     if (!result.canceled) {
       try {
         setLoading(true);
-        const uploaded = await uploadCarImage(token, result.assets[0].uri);
+
+        const localUri =
+          Platform.OS === "web"
+            ? result.assets[0].uri
+            : result.assets[0].uri.replace("file://", "");
+
+        const uploaded = await uploadCarImage(token, localUri);
+
         setImages((prev) => [...prev, uploaded.url]);
       } catch (err) {
         console.log("Error uploading image:", err);
-        Alert.alert("Gabim", "Ngarkimi i fotos dështoi");
+        Alert.alert("Gabim", "Ngarkimi i fotos dështoi.");
       } finally {
         setLoading(false);
       }
@@ -78,6 +87,16 @@ export default function AddCarScreen({ navigation }) {
         "Gabim",
         "Titulli, karburanti dhe të paktën 1 foto janë të detyrueshme."
       );
+      return;
+    }
+
+    if (year && isNaN(Number(year))) {
+      Alert.alert("Gabim", "Viti duhet të jetë numër.");
+      return;
+    }
+
+    if (price && isNaN(Number(price))) {
+      Alert.alert("Gabim", "Çmimi duhet të jetë numër.");
       return;
     }
 
@@ -96,11 +115,19 @@ export default function AddCarScreen({ navigation }) {
       images,
     };
 
+    // pastrim i fushave bosh
+    const cleanData = Object.fromEntries(
+      Object.entries(carData).filter(([_, v]) => v !== "" && v !== undefined)
+    );
+
     try {
       setLoading(true);
-      await createCar(token, carData);
+      await createCar(token, cleanData);
+
       Alert.alert("Sukses", "Makina u shtua me sukses!");
+
       resetForm();
+
       navigation.navigate("MyCars");
     } catch (err) {
       console.log("Error creating car:", err);
@@ -116,15 +143,117 @@ export default function AddCarScreen({ navigation }) {
         Shto një makinë për shitje
       </Text>
 
-      {/* Fushat siç i ke – nuk po i përsëris se janë ok */}
-      {/* ... (kodi yt identik për input-et) ... */}
+      {/* ====== INPUTET ====== */}
+      <Text className="text-white mb-2">Titulli *</Text>
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="Titulli i njoftimit"
+        placeholderTextColor="#666"
+      />
 
+      <Text className="text-white mb-2">Marka</Text>
+      <TextInput
+        value={brand}
+        onChangeText={setBrand}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="Audi, BMW..."
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Modeli</Text>
+      <TextInput
+        value={model}
+        onChangeText={setModel}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="A4, Golf 7..."
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Viti</Text>
+      <TextInput
+        value={year}
+        onChangeText={setYear}
+        keyboardType="numeric"
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="2017"
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Çmimi (€)</Text>
+      <TextInput
+        value={price}
+        onChangeText={setPrice}
+        keyboardType="numeric"
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="10000"
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Kilometra</Text>
+      <TextInput
+        value={mileage}
+        onChangeText={setMileage}
+        keyboardType="numeric"
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="150000"
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Karburanti *</Text>
+      <TextInput
+        value={fuel}
+        onChangeText={setFuel}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="Naftë, Benzinë..."
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Transmisioni</Text>
+      <TextInput
+        value={transmission}
+        onChangeText={setTransmission}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="Automatik / Manual"
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Lloji karrocerisë</Text>
+      <TextInput
+        value={bodyType}
+        onChangeText={setBodyType}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="Sedan, SUV..."
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Vendndodhja</Text>
+      <TextInput
+        value={location}
+        onChangeText={setLocation}
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3"
+        placeholder="Tiranë, Durrës..."
+        placeholderTextColor="#666"
+      />
+
+      <Text className="text-white mb-2">Përshkrimi</Text>
+      <TextInput
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        className="bg-gray-900 text-white p-3 rounded-xl mb-3 h-24"
+        placeholder="Detaje të tjera..."
+        placeholderTextColor="#666"
+      />
+
+      {/* ================= FOTO ================= */}
       <Text className="text-white mb-2 mt-2">Fotot *</Text>
       <View className="flex-row flex-wrap mb-3">
         {images.map((img, idx) => (
           <Image
             key={idx}
-            source={{ uri: `http://192.168.1.216:8000${img}` }}
+            source={{ uri: `${BASE_URL}${img}` }}
             className="w-24 h-24 rounded-xl mr-2 mb-2"
           />
         ))}
@@ -140,6 +269,7 @@ export default function AddCarScreen({ navigation }) {
         </Text>
       </TouchableOpacity>
 
+      {/* SUBMIT */}
       <TouchableOpacity
         onPress={handleSubmit}
         className="bg-blue-600 p-3 rounded-xl mb-10"

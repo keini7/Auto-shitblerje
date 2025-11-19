@@ -7,38 +7,41 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import { useAuth } from "../../context/AuthContext";
+import { useFavoritesContext } from "../../context/FavoritesContext";
+
 import { getMyCars } from "../../api/cars";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AccountHome({ navigation }) {
   const { user, logout, token } = useAuth();
+  const { favorites } = useFavoritesContext();
+
   const [myCarsCount, setMyCarsCount] = useState(0);
-  const [favoritesCount, setFavoritesCount] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
 
-  // Load stats (my cars and favorites)
   const loadStats = async () => {
+    if (!token) return;
+
     try {
-      // My cars
       const cars = await getMyCars(token);
       setMyCarsCount(cars.length);
-
-      // Favorites (stored in AsyncStorage)
-      const fav = await AsyncStorage.getItem("favorites");
-      setFavoritesCount(fav ? JSON.parse(fav).length : 0);
     } catch (err) {
-      console.log("Error loading stats:", err);
+      console.log("Error loading my cars:", err);
     } finally {
       setLoadingStats(false);
     }
   };
 
-  // Reload stats when user returns to this screen
+  // Run on screen focus
   useEffect(() => {
-    const focusListener = navigation.addListener("focus", loadStats);
-    return focusListener;
-  }, [navigation]);
+    const unsubscribe = navigation.addListener("focus", () => {
+      setLoadingStats(true);
+      loadStats();
+    });
+
+    return () => unsubscribe();
+  }, [navigation, token]);
 
   if (!user) {
     return (
@@ -51,12 +54,9 @@ export default function AccountHome({ navigation }) {
   return (
     <ScrollView className="flex-1 bg-black p-4">
 
-      {/* Header */}
-      <Text className="text-white text-3xl font-bold mb-5">
-        Profili im
-      </Text>
+      <Text className="text-white text-3xl font-bold mb-5">Profili im</Text>
 
-      {/* User Card */}
+      {/* User Info */}
       <View className="bg-gray-900 p-4 rounded-xl mb-6">
         <Text className="text-white text-xl font-bold">{user.name}</Text>
         <Text className="text-gray-300 mt-1">📧 {user.email}</Text>
@@ -65,24 +65,18 @@ export default function AccountHome({ navigation }) {
 
       {/* Stats */}
       <View className="flex-row justify-between mb-6">
-        {/* My Cars */}
         <View className="bg-gray-800 p-4 rounded-xl flex-1 mr-3 items-center">
           <Text className="text-blue-400 text-3xl font-bold">
             {loadingStats ? "…" : myCarsCount}
           </Text>
-          <Text className="text-gray-300 mt-1 text-center">
-            Makinat e mia
-          </Text>
+          <Text className="text-gray-300 mt-1">Makinat e mia</Text>
         </View>
 
-        {/* Favorites */}
         <View className="bg-gray-800 p-4 rounded-xl flex-1 ml-3 items-center">
           <Text className="text-pink-400 text-3xl font-bold">
-            {loadingStats ? "…" : favoritesCount}
+            {favorites.length}
           </Text>
-          <Text className="text-gray-300 mt-1 text-center">
-            Të preferuarat
-          </Text>
+          <Text className="text-gray-300 mt-1">Të preferuarat</Text>
         </View>
       </View>
 
@@ -92,7 +86,9 @@ export default function AccountHome({ navigation }) {
         className="bg-blue-600 p-4 rounded-xl flex-row items-center mb-3"
       >
         <Ionicons name="add-circle" size={26} color="white" />
-        <Text className="text-white text-lg font-bold ml-3">Shto makinë</Text>
+        <Text className="text-white text-lg font-bold ml-3">
+          Shto makinë
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -106,7 +102,7 @@ export default function AccountHome({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => navigation.navigate("FavoritesTab")}
+        onPress={() => navigation.navigate("Main", { screen: "FavoritesTab" })}
         className="bg-gray-700 p-4 rounded-xl flex-row items-center mb-3"
       >
         <Ionicons name="heart" size={26} color="white" />

@@ -2,6 +2,8 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import BottomTabs from "./BottomTabs";
+import LoginScreen from "../screens/Account/LoginScreen";
+import RegisterScreen from "../screens/Account/RegisterScreen";
 
 import { useAuth } from "../context/AuthContext";
 import { View, ActivityIndicator, Text } from "react-native";
@@ -9,9 +11,8 @@ import { View, ActivityIndicator, Text } from "react-native";
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigation() {
-  const { loading } = useAuth();
+  const { loading, isLogged } = useAuth();
 
-  // loading = true → po lexon token nga AsyncStorage
   if (loading) {
     return (
       <View className="flex-1 bg-black items-center justify-center">
@@ -24,8 +25,16 @@ export default function RootNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Navigatori kryesor */}
-        <Stack.Screen name="Main" component={BottomTabs} />
+        {isLogged ? (
+          // USER IS LOGGED → GO TO THE APP
+          <Stack.Screen name="Main" component={BottomTabs} />
+        ) : (
+          // USER NOT LOGGED → AUTH PAGES
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,8 +1,8 @@
-const BASE_URL = "http://192.168.1.216:8000/api/auth";
+import { AUTH_URL } from "../constants/config";
 
 // ================= REGISTER =================
 export const registerUser = async (name, email, password, phone) => {
-  const res = await fetch(`${BASE_URL}/register`, {
+  const res = await fetch(`${AUTH_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password, phone }),
@@ -19,7 +19,7 @@ export const registerUser = async (name, email, password, phone) => {
 
 // ================= LOGIN =================
 export const loginUser = async (email, password) => {
-  const res = await fetch(`${BASE_URL}/login`, {
+  const res = await fetch(`${AUTH_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
