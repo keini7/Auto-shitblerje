@@ -247,4 +247,6 @@ MIT
 
 ## 👤 Autor
 
-Car Marketplace Project
+Keini Hoxha
+
+## Note: ky eshte nje aplikacion prove per te treguar njohurite dhe aftesite e mia ne programim. Faleminderit!
