@@ -50,6 +50,8 @@ export const fetchMe = async (token: string) => {
   const res = await fetch(`${AUTH_URL}/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  // getMe returns { user: {...} } to match register/login format
+  return data.user;
 };
 
