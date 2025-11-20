@@ -27,14 +27,31 @@ exports.register = async (req, res, next) => {
       phone,
     });
 
+    const token = generateToken(user._id);
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+      token,
     });
 
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ================= GET ME =================
+exports.getMe = async (req, res, next) => {
+  try {
+    res.json({
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      phone: req.user.phone,
+    });
   } catch (err) {
     next(err);
   }
@@ -64,12 +81,15 @@ exports.login = async (req, res, next) => {
       throw new Error("Invalid password");
     }
 
+    const token = generateToken(user._id);
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+      token,
     });
 
   } catch (err) {

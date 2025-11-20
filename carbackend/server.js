@@ -8,7 +8,28 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+// CORS configuration - Allow from localhost and network IP
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:8100',
+  'http://localhost:3000',
+  'http://192.168.1.216:5173', // Add your local IP
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('192.168.') || origin.includes('10.0.') || origin.includes('172.')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Static Upload Folder
@@ -88,13 +109,25 @@ app.get("/api-docs-json", (req, res) => res.json(swaggerSpec));
 
 const errorHandler = require("./middleware/errorHandler");
 
+// Error handler must be last
+app.use(errorHandler);
 
 // ==== START SERVER ====
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🌐 Network access: http://192.168.1.216:${PORT}`);
+});
 
-
-app.use(errorHandler);
+// Handle server errors
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please stop the other process or use a different port.`);
+    console.error(`   Try: lsof -ti:${PORT} | xargs kill -9`);
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', err);
+    process.exit(1);
+  }
 });

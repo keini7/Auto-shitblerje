@@ -1,0 +1,14 @@
+{
+  "name": "auto-workspace",
+  "private": true,
+  "scripts": {
+    "clean:ports": "lsof -ti:8000 | xargs kill -9 2>/dev/null || true; lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
+    "dev:backend": "cd carbackend && npm run dev",
+    "dev:frontend": "cd carfront-ionic && npm run dev",
+    "dev": "npm run clean:ports && concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
+

@@ -6,7 +6,8 @@
  */
 
 const router = require("express").Router();
-const { register, login } = require("../controllers/authController");
+const { register, login, getMe } = require("../controllers/authController");
+const protect = require("../middleware/authMiddleware");
 
 /**
  * @swagger
@@ -31,5 +32,6 @@ router.post("/register", register);
  *         description: Logged in successfully
  */
 router.post("/login", login);
+router.get("/me", protect, getMe);
 
 module.exports = router;
