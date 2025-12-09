@@ -1,9 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
 const connectDB = require("./config/db");
 
-dotenv.config();
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+
+// Verify required environment variables
+if (!process.env.MONGO_URI) {
+  console.error("❌ Error: MONGO_URI is not defined in .env file");
+  console.error("   Please create a .env file in the carbackend directory with:");
+  console.error("   MONGO_URI=mongodb://127.0.0.1:27017/car-marketplace");
+  process.exit(1);
+}
+
+if (!process.env.JWT_SECRET) {
+  console.error("❌ Error: JWT_SECRET is not defined in .env file");
+  process.exit(1);
+}
+
 connectDB();
 
 const app = express();

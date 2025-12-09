@@ -10,6 +10,7 @@ const multer = require("multer");
 const protect = require("../middleware/authMiddleware");
 const sharp = require("sharp");
 const fs = require("fs");
+const uploadController = require("../controllers/uploadController");
 
 // Multer Storage (temporary)
 const storage = multer.diskStorage({
@@ -29,6 +30,25 @@ const upload = multer({
     cb(null, true);
   },
 });
+
+/**
+ * @swagger
+ * /api/upload/car-image:
+ *   post:
+ *     summary: Upload a single car image
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Uploaded image URL
+ */
+router.post(
+  "/car-image",
+  protect,
+  upload.single("image"),
+  uploadController.uploadImage
+);
 
 /**
  * @swagger
@@ -57,25 +77,22 @@ router.post(
 
       for (const file of req.files) {
         const originalPath = file.path;
-        const optimizedPath = file.path.replace(".jpg", "_optimized.jpg");
-        const thumbPath = file.path.replace(".jpg", "_thumb.jpg");
-
         const ext = file.originalname.split('.').pop().toLowerCase();
+        
+        // Create optimized and thumbnail versions (always save as JPEG for consistency)
+        const optFile = file.path.replace(`.${ext}`, `_optimized.jpg`);
+        const thumbFile = file.path.replace(`.${ext}`, `_thumb.jpg`);
 
-        // If extension is png/webp/jpg → handle generically
-        const optFile = file.path.replace(`.${ext}`, `_optimized.${ext}`);
-        const thumbFile = file.path.replace(`.${ext}`, `_thumb.${ext}`);
-
-        // Create optimized image
+        // Create optimized image (convert to JPEG)
         await sharp(originalPath)
-          .resize(1280)     // max width 1280px
-          .jpeg({ quality: 60 })
+          .resize(1280, null, { withoutEnlargement: true })  // max width 1280px
+          .jpeg({ quality: 80 })
           .toFile(optFile);
 
-        // Create thumbnail
+        // Create thumbnail (convert to JPEG)
         await sharp(originalPath)
-          .resize(200)
-          .jpeg({ quality: 40 })
+          .resize(200, 200, { fit: 'cover' })
+          .jpeg({ quality: 70 })
           .toFile(thumbFile);
 
         images.push({

@@ -7,6 +7,8 @@ import {
   IonLabel,
   IonList,
   IonPage,
+  IonSelect,
+  IonSelectOption,
   IonSpinner,
   IonText,
   IonTextarea,
@@ -172,7 +174,18 @@ const AddCarPage = () => {
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">Karburanti *</IonLabel>
-            <IonInput value={fuel} onIonInput={(e) => setFuel(e.detail.value ?? '')} />
+            <IonSelect
+              value={fuel}
+              placeholder="Zgjidh karburantin"
+              onIonChange={(e) => setFuel(e.detail.value ?? '')}
+            >
+              <IonSelectOption value="Naftë">Naftë</IonSelectOption>
+              <IonSelectOption value="Benzinë">Benzinë</IonSelectOption>
+              <IonSelectOption value="Benzinë + Gaz">Benzinë + Gaz</IonSelectOption>
+              <IonSelectOption value="Gaz">Gaz</IonSelectOption>
+              <IonSelectOption value="Elektrike">Elektrike</IonSelectOption>
+              <IonSelectOption value="Hibride">Hibride</IonSelectOption>
+            </IonSelect>
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">Transmisioni</IonLabel>
