@@ -36,22 +36,16 @@ const {
 
 const CARAPI_BASE_URL = "https://carapi.app/api";
 
-// ------------------ GET ALL CARS ------------------
 router.get("/", getCars);
 
-// ------------------ GET CAR BY ID ------------------
 router.get("/:id", getCarById);
 
-// ------------------ CREATE CAR ------------------
 router.post("/", protect, createCar);
 
-// ------------------ GET MY CARS ------------------
 router.get("/me/mine", protect, getMyCars);
 
-// ------------------ DELETE CAR ------------------
 router.delete("/:id", protect, deleteCar);
 
-// ------------------ GET BRANDS (CLEAN LIST) ------------------
 router.get("/brands/all", async (req, res, next) => {
   try {
     const response = await axios.get(`${CARAPI_BASE_URL}/makes`);
@@ -62,7 +56,6 @@ router.get("/brands/all", async (req, res, next) => {
   }
 });
 
-// ------------------ GET MODELS BY BRAND (CLEAN LIST) ------------------
 router.get("/models/all", async (req, res, next) => {
   const brand = req.query.brand;
 

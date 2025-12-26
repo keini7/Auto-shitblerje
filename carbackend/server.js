@@ -6,10 +6,8 @@ const net = require("net");
 const fs = require("fs");
 const connectDB = require("./config/db");
 
-// Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
-// Verify required environment variables
 if (!process.env.MONGO_URI) {
   console.error("❌ Error: MONGO_URI is not defined in .env file");
   console.error("   Please create a .env file in the carbackend directory with:");
@@ -26,45 +24,37 @@ connectDB();
 
 const app = express();
 
-// CORS configuration - Allow from localhost and network IP (me çdo port)
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       
       try {
         const url = new URL(origin);
         const hostname = url.hostname.toLowerCase();
         
-        // Lejo localhost me çdo port
         if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
           return callback(null, true);
         }
         
-        // Lejo IP-të e rrjetit lokal (192.168.x.x, 10.x.x.x, 172.16-31.x.x) me çdo port
         const ipParts = hostname.split('.');
         if (ipParts.length === 4) {
           const firstOctet = parseInt(ipParts[0]);
           const secondOctet = parseInt(ipParts[1]);
           
-          // 192.168.x.x
           if (firstOctet === 192 && secondOctet === 168) {
             return callback(null, true);
           }
           
-          // 10.x.x.x
           if (firstOctet === 10) {
             return callback(null, true);
           }
           
-          // 172.16.x.x - 172.31.x.x
           if (firstOctet === 172 && secondOctet >= 16 && secondOctet <= 31) {
             return callback(null, true);
           }
         }
         
-        // Në development mode, lejo edhe localhost me variacione
         if (process.env.NODE_ENV !== 'production') {
           if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
             return callback(null, true);
@@ -74,7 +64,6 @@ app.use(
         console.log(`🚫 CORS blocked origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       } catch (err) {
-        // Nëse URL nuk është valid, refuzoje për siguri
         console.log(`🚫 CORS error parsing origin: ${origin}`, err.message);
         callback(new Error('Invalid origin'));
       }
@@ -84,15 +73,12 @@ app.use(
 );
 app.use(express.json());
 
-// Static Upload Folder
 app.use("/uploads", express.static("uploads"));
 
-// ==== ROUTES ====
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/cars", require("./routes/carRoutes"));
 app.use("/api/upload", require("./routes/uploadRoutes"));
 
-// ==== API DOCUMENTATION ROUTE ====
 app.get("/api", (req, res) => {
   res.json({
     message: "Car Marketplace API Endpoints",
@@ -147,7 +133,6 @@ app.get("/api", (req, res) => {
   });
 });
 
-// HOME ROUTE
 app.get("/", (req, res) => {
   res.send("Car Marketplace API Running 🚗");
 });
@@ -161,10 +146,8 @@ app.get("/api-docs-json", (req, res) => res.json(swaggerSpec));
 
 const errorHandler = require("./middleware/errorHandler");
 
-// Error handler must be last
 app.use(errorHandler);
 
-// ==== HELPER FUNCTION: Find available port ====
 function findAvailablePort(startPort) {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -178,7 +161,6 @@ function findAvailablePort(startPort) {
     
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        // Port is in use, try next port
         findAvailablePort(startPort + 1)
           .then(resolve)
           .catch(reject);
@@ -189,7 +171,6 @@ function findAvailablePort(startPort) {
   });
 }
 
-// ==== START SERVER ====
 const DEFAULT_PORT = parseInt(process.env.PORT) || 8000;
 
 async function startServer() {
@@ -200,8 +181,6 @@ async function startServer() {
       console.log(`⚠️  Port ${DEFAULT_PORT} is in use, using port ${PORT} instead`);
     }
     
-    // Shkruaj portin në një file që frontend-i mund ta lexojë
-    // Shkruaj në root të projektit dhe në public folder të frontend-it
     const portFilePath = path.join(__dirname, '..', 'backend-port.json');
     const frontendPublicPath = path.join(__dirname, '..', 'carfront-ionic', 'public', 'backend-port.json');
     const portInfo = { port: PORT };
@@ -209,13 +188,11 @@ async function startServer() {
     fs.writeFileSync(portFilePath, JSON.stringify(portInfo, null, 2));
     console.log(`📝 Port info written to: ${portFilePath}`);
     
-    // Shkruaj edhe në public folder të frontend-it
     const frontendPublicDir = path.join(__dirname, '..', 'carfront-ionic', 'public');
     if (fs.existsSync(frontendPublicDir)) {
       fs.writeFileSync(frontendPublicPath, JSON.stringify(portInfo, null, 2));
       console.log(`📝 Port info written to: ${frontendPublicPath}`);
     } else {
-      // Krijo public folder nëse nuk ekziston
       try {
         fs.mkdirSync(frontendPublicDir, { recursive: true });
         fs.writeFileSync(frontendPublicPath, JSON.stringify(portInfo, null, 2));
@@ -230,13 +207,11 @@ async function startServer() {
       console.log(`🌐 Network access: http://192.168.1.216:${PORT}`);
     });
 
-    // Handle server errors
     server.on('error', (err) => {
       console.error('❌ Server error:', err);
       process.exit(1);
     });
     
-    // Pastro file-in kur server-i mbyllet
     const cleanup = () => {
       if (fs.existsSync(portFilePath)) {
         fs.unlinkSync(portFilePath);

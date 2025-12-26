@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const CarSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true,     // Duhet një titull që të dimë çfarë makine është
+    required: true,    
   },
   brand: {
     type: String,

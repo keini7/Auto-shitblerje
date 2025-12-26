@@ -10,10 +10,8 @@ async function findBackendPort(): Promise<number> {
     }
   }
 
-  // Provë të lexojë portin nga file-i që backend-i shkruan (vetëm në development)
   if (import.meta.env.DEV) {
     try {
-      // Në development, provo të lexosh file-in nga public folder
       const portInfo = await fetch('/backend-port.json').then(res => {
         if (res.ok) return res.json();
         return null;
@@ -27,7 +25,6 @@ async function findBackendPort(): Promise<number> {
     }
   }
 
-  // Nëse nuk gjejmë, provo portet automatikisht
   const startPort = 8000;
   const maxPort = 8010; // Provë deri në 8010
   

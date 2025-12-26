@@ -4,11 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.carmarketplace.app',
   appName: 'Car Marketplace',
   webDir: 'dist',
-  // server.url do të përditësohet automatikisht nga scripts/setup-mobile-env.cjs
-  // Script-i gjen IP-në e kompjuterit automatikisht dhe e vendos këtu
   server: {
-    url: 'http://192.168.1.216:8000', // Auto-updated by setup-mobile-env.cjs
-    cleartext: true, // Lejon HTTP (jo vetëm HTTPS)
+    url: 'http://192.168.1.216:8000',
+    cleartext: true, 
     androidScheme: 'https',
     iosScheme: 'https',
   },

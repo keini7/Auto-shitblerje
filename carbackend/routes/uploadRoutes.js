@@ -12,7 +12,6 @@ const sharp = require("sharp");
 const fs = require("fs");
 const uploadController = require("../controllers/uploadController");
 
-// Multer Storage (temporary)
 const storage = multer.diskStorage({
   destination: "uploads/car-images/",
   filename: (req, file, cb) => {
@@ -79,17 +78,14 @@ router.post(
         const originalPath = file.path;
         const ext = file.originalname.split('.').pop().toLowerCase();
         
-        // Create optimized and thumbnail versions (always save as JPEG for consistency)
         const optFile = file.path.replace(`.${ext}`, `_optimized.jpg`);
         const thumbFile = file.path.replace(`.${ext}`, `_thumb.jpg`);
 
-        // Create optimized image (convert to JPEG)
         await sharp(originalPath)
           .resize(1280, null, { withoutEnlargement: true })  // max width 1280px
           .jpeg({ quality: 80 })
           .toFile(optFile);
 
-        // Create thumbnail (convert to JPEG)
         await sharp(originalPath)
           .resize(200, 200, { fit: 'cover' })
           .jpeg({ quality: 70 })

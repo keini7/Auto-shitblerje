@@ -52,8 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const loadAuth = async () => {
       try {
         console.log('[AuthContext] Loading auth state...');
-        // Try to load from Preferences (works in Capacitor)
-        // Fallback to localStorage for web development
         let savedToken: string | null = null;
         let savedUser: string | null = null;
 
@@ -64,7 +62,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           savedUser = userResult.value;
           console.log('[AuthContext] Loaded from Preferences');
         } catch (e) {
-          // Fallback to localStorage for web
           console.log('[AuthContext] Preferences failed, using localStorage', e);
           savedToken = localStorage.getItem(TOKEN_KEY);
           savedUser = localStorage.getItem(USER_KEY);
@@ -81,7 +78,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
           }
 
-          // Try to refresh user data from backend
           try {
             console.log('[AuthContext] Fetching fresh user data...');
             const freshUser = await fetchMe(savedToken);
@@ -94,7 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.log('[AuthContext] User data refreshed');
           } catch (error) {
             console.error('[AuthContext] Auth refresh error', error);
-            // Token might be invalid, clear it
             await logout();
           }
         } else {
@@ -118,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await Preferences.set({ key: TOKEN_KEY, value: authData.token });
       await Preferences.set({ key: USER_KEY, value: JSON.stringify(authData.user) });
     } catch {
-      // Fallback to localStorage for web
       localStorage.setItem(TOKEN_KEY, authData.token);
       localStorage.setItem(USER_KEY, JSON.stringify(authData.user));
     }

@@ -21,7 +21,6 @@ const UserSchema = new mongoose.Schema({
     type: String 
   },
 
-  // ⭐ Favorites list
   favorites: [
     {
       type: mongoose.Schema.Types.ObjectId,

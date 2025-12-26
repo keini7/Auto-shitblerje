@@ -44,7 +44,6 @@ const HomePage = () => {
       setPage(pageToLoad + 1);
     } catch (err) {
       console.error('[HomePage] Error loading cars', err);
-      // Set empty array on error to show something
       if (!append) {
         setCars([]);
       }

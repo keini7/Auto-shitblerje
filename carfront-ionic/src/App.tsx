@@ -25,15 +25,12 @@ import AddCarPage from './pages/Account/AddCarPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 
-/* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
-/* Basic CSS for apps built with Ionic */
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
 import '@ionic/react/css/typography.css';
 
-/* Optional CSS utils that can be commented out */
 import '@ionic/react/css/padding.css';
 import '@ionic/react/css/float-elements.css';
 import '@ionic/react/css/text-alignment.css';
@@ -142,7 +139,6 @@ const AppRoutes = () => {
     return <LoadingFallback />;
   }
 
-  // Ensure we redirect to /tabs/home if on root
   useEffect(() => {
     if (location.pathname === '/') {
       console.log('[App] Redirecting from / to /tabs/home');

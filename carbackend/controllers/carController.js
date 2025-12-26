@@ -1,6 +1,6 @@
 const Car = require("../models/Car");
 
-// Search + Filter + Sort + Pagination) ===================
+// Search + Filter + Sort + Pagination
 exports.getCars = async (req, res, next) => {
   try {
     const {
@@ -60,7 +60,7 @@ exports.getCars = async (req, res, next) => {
       if (maxKm) query.mileage.$lte = Number(maxKm);
     }
 
-    // ----------- SORTING -----------
+    //SORTING
     let sortOption = {};
 
     switch (sort) {
@@ -96,7 +96,7 @@ exports.getCars = async (req, res, next) => {
         sortOption.created_at = -1; // default newest first
     }
 
-    // ----------- PAGINATION -----------
+    // PAGINATION
     const skip = (page - 1) * limit;
 
     const cars = await Car.find(query)
@@ -118,7 +118,7 @@ exports.getCars = async (req, res, next) => {
   }
 };
 
-// =================== GET CAR BY ID ===================
+// GET CAR BY ID 
 exports.getCarById = async (req, res, next) => {
   try {
     const car = await Car.findById(req.params.id).populate(
@@ -146,20 +146,20 @@ exports.getRelatedCars = async (req, res, next) => {
       throw new Error("Car not found");
     }
 
-    // Sugjerime inteligjente
+    // Sugjerime
     const related = await Car.find({
-      _id: { $ne: car._id },               // mos e përfshi vetveten
-      brand: car.brand,                    // e njëjta markë
+      _id: { $ne: car._id },               
+      brand: car.brand,                  
       price: {
-        $gte: car.price * 0.7,             // ±30% çmimi
+        $gte: car.price * 0.7,           
         $lte: car.price * 1.3
       },
       year: {
-        $gte: car.year - 2,                // ±2 vite
+        $gte: car.year - 2,           
         $lte: car.year + 2
       }
     })
-      .limit(10)                           // maksimumi 10 makina
+      .limit(10)                       
       .populate("seller", "name phone email")
       .lean();
 
@@ -183,7 +183,7 @@ exports.getRelatedCars = async (req, res, next) => {
   }
 };
 
-// =================== CREATE CAR ===================
+// CREATE CAR
 exports.createCar = async (req, res, next) => {
   try {
     const car = await Car.create({
@@ -197,7 +197,7 @@ exports.createCar = async (req, res, next) => {
   }
 };
 
-// =================== GET MY CARS ===================
+// GET MY CARS
 exports.getMyCars = async (req, res, next) => {
   try {
     const cars = await Car.find({ seller: req.user._id });
@@ -207,7 +207,7 @@ exports.getMyCars = async (req, res, next) => {
   }
 };
 
-// =================== DELETE CAR ===================
+//DELETE CAR
 exports.deleteCar = async (req, res, next) => {
   try {
     const car = await Car.findById(req.params.id);
@@ -230,7 +230,7 @@ exports.deleteCar = async (req, res, next) => {
   }
 };
 
-// =================== UPLOAD SINGLE IMAGE ===================
+// UPLOAD SINGLE IMAGE
 exports.uploadImage = (req, res, next) => {
   try {
     if (!req.file) {

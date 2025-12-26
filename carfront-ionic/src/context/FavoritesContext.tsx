@@ -31,7 +31,6 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
           const stored = await Preferences.get({ key: FAVORITES_KEY });
           storedValue = stored.value;
         } catch {
-          // Fallback to localStorage for web
           storedValue = localStorage.getItem(FAVORITES_KEY);
         }
         if (storedValue) {
@@ -50,7 +49,6 @@ export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
     try {
       await Preferences.set({ key: FAVORITES_KEY, value: JSON.stringify(list) });
     } catch {
-      // Fallback to localStorage for web
       localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
     }
   };
