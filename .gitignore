@@ -91,3 +91,7 @@ coverage/
 swagger-output.json
 .eslintcache
 
+
+# Backend port file (auto-generated)
+backend-port.json
+carfront-ionic/public/backend-port.json

@@ -1,4 +1,4 @@
-import { AUTH_URL } from '../constants/config';
+import { getAuthUrl } from '../constants/config';
 
 export interface AuthResponse {
   token: string;
@@ -26,7 +26,7 @@ export const registerUser = async (
   password: string,
   phone?: string,
 ): Promise<AuthResponse> => {
-  const res = await fetch(`${AUTH_URL}/register`, {
+  const res = await fetch(`${getAuthUrl()}/register`, {
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ name, email, password, phone }),
@@ -38,7 +38,7 @@ export const loginUser = async (
   email: string,
   password: string,
 ): Promise<AuthResponse> => {
-  const res = await fetch(`${AUTH_URL}/login`, {
+  const res = await fetch(`${getAuthUrl()}/login`, {
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({ email, password }),
@@ -47,7 +47,7 @@ export const loginUser = async (
 };
 
 export const fetchMe = async (token: string) => {
-  const res = await fetch(`${AUTH_URL}/me`, {
+  const res = await fetch(`${getAuthUrl()}/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await handleResponse(res);

@@ -1,4 +1,4 @@
-import { UPLOAD_URL } from '../constants/config';
+import { getUploadUrl } from '../constants/config';
 
 const handleResponse = async (res: Response) => {
   const data = await res.json().catch(() => ({}));
@@ -12,7 +12,7 @@ export const uploadCarImage = async (token: string, file: File) => {
   const formData = new FormData();
   formData.append('image', file);
 
-  const res = await fetch(`${UPLOAD_URL}/car-image`, {
+  const res = await fetch(`${getUploadUrl()}/car-image`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,

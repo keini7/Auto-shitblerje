@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../constants/config';
+import { getApiBaseUrl } from '../constants/config';
 
 export interface Car {
   _id: string;
@@ -50,9 +50,9 @@ export const getCars = async (
   params: Record<string, string | number | undefined> = {},
 ): Promise<PaginatedCars> => {
   const query = buildQuery(params);
-  const url = `${API_BASE_URL}/cars${query ? `?${query}` : ''}`;
+  const url = `${getApiBaseUrl()}/cars${query ? `?${query}` : ''}`;
   console.log('[API] Fetching cars from:', url);
-  console.log('[API] API_BASE_URL:', API_BASE_URL);
+  console.log('[API] API_BASE_URL:', getApiBaseUrl());
   const res = await fetch(url);
   console.log('[API] Response status:', res.status);
   return handleResponse(res);
@@ -62,27 +62,27 @@ export const searchCars = async (params: Record<string, string | number | undefi
   getCars(params);
 
 export const getCarById = async (id: string): Promise<Car> => {
-  const res = await fetch(`${API_BASE_URL}/cars/${id}`);
+  const res = await fetch(`${getApiBaseUrl()}/cars/${id}`);
   return handleResponse(res);
 };
 
 export const getRelatedCars = async (id: string): Promise<Car[]> => {
-  const res = await fetch(`${API_BASE_URL}/cars/${id}/related`);
+  const res = await fetch(`${getApiBaseUrl()}/cars/${id}/related`);
   return handleResponse(res);
 };
 
 export const getBrands = async (): Promise<string[]> => {
-  const res = await fetch(`${API_BASE_URL}/cars/brands`);
+  const res = await fetch(`${getApiBaseUrl()}/cars/brands`);
   return handleResponse(res);
 };
 
 export const getModels = async (brand: string): Promise<string[]> => {
-  const res = await fetch(`${API_BASE_URL}/cars/models/${brand}`);
+  const res = await fetch(`${getApiBaseUrl()}/cars/models/${brand}`);
   return handleResponse(res);
 };
 
 export const createCar = async (token: string, carData: Record<string, unknown>) => {
-  const res = await fetch(`${API_BASE_URL}/cars`, {
+  const res = await fetch(`${getApiBaseUrl()}/cars`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export const createCar = async (token: string, carData: Record<string, unknown>)
 };
 
 export const getMyCars = async (token: string): Promise<Car[]> => {
-  const res = await fetch(`${API_BASE_URL}/cars/me/mine`, {
+  const res = await fetch(`${getApiBaseUrl()}/cars/me/mine`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -103,7 +103,7 @@ export const getMyCars = async (token: string): Promise<Car[]> => {
 };
 
 export const deleteCar = async (id: string, token: string) => {
-  const res = await fetch(`${API_BASE_URL}/cars/${id}`, {
+  const res = await fetch(`${getApiBaseUrl()}/cars/${id}`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${token}`,

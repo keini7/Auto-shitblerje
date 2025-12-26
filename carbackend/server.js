@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
+const net = require("net");
+const fs = require("fs");
 const connectDB = require("./config/db");
 
 // Load environment variables from .env file
@@ -24,23 +26,57 @@ connectDB();
 
 const app = express();
 
-// CORS configuration - Allow from localhost and network IP
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:8100',
-  'http://localhost:3000',
-  'http://192.168.1.216:5173', // Add your local IP
-];
-
+// CORS configuration - Allow from localhost and network IP (me çdo port)
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('192.168.') || origin.includes('10.0.') || origin.includes('172.')) {
-        callback(null, true);
-      } else {
+      
+      try {
+        const url = new URL(origin);
+        const hostname = url.hostname.toLowerCase();
+        
+        // Lejo localhost me çdo port
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+          return callback(null, true);
+        }
+        
+        // Lejo IP-të e rrjetit lokal (192.168.x.x, 10.x.x.x, 172.16-31.x.x) me çdo port
+        const ipParts = hostname.split('.');
+        if (ipParts.length === 4) {
+          const firstOctet = parseInt(ipParts[0]);
+          const secondOctet = parseInt(ipParts[1]);
+          
+          // 192.168.x.x
+          if (firstOctet === 192 && secondOctet === 168) {
+            return callback(null, true);
+          }
+          
+          // 10.x.x.x
+          if (firstOctet === 10) {
+            return callback(null, true);
+          }
+          
+          // 172.16.x.x - 172.31.x.x
+          if (firstOctet === 172 && secondOctet >= 16 && secondOctet <= 31) {
+            return callback(null, true);
+          }
+        }
+        
+        // Në development mode, lejo edhe localhost me variacione
+        if (process.env.NODE_ENV !== 'production') {
+          if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+            return callback(null, true);
+          }
+        }
+        
+        console.log(`🚫 CORS blocked origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
+      } catch (err) {
+        // Nëse URL nuk është valid, refuzoje për siguri
+        console.log(`🚫 CORS error parsing origin: ${origin}`, err.message);
+        callback(new Error('Invalid origin'));
       }
     },
     credentials: true,
@@ -128,22 +164,101 @@ const errorHandler = require("./middleware/errorHandler");
 // Error handler must be last
 app.use(errorHandler);
 
+// ==== HELPER FUNCTION: Find available port ====
+function findAvailablePort(startPort) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    
+    server.listen(startPort, () => {
+      const port = server.address().port;
+      server.close(() => {
+        resolve(port);
+      });
+    });
+    
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        // Port is in use, try next port
+        findAvailablePort(startPort + 1)
+          .then(resolve)
+          .catch(reject);
+      } else {
+        reject(err);
+      }
+    });
+  });
+}
+
 // ==== START SERVER ====
-const PORT = process.env.PORT || 8000;
+const DEFAULT_PORT = parseInt(process.env.PORT) || 8000;
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`🌐 Network access: http://192.168.1.216:${PORT}`);
-});
+async function startServer() {
+  try {
+    const PORT = await findAvailablePort(DEFAULT_PORT);
+    
+    if (PORT !== DEFAULT_PORT) {
+      console.log(`⚠️  Port ${DEFAULT_PORT} is in use, using port ${PORT} instead`);
+    }
+    
+    // Shkruaj portin në një file që frontend-i mund ta lexojë
+    // Shkruaj në root të projektit dhe në public folder të frontend-it
+    const portFilePath = path.join(__dirname, '..', 'backend-port.json');
+    const frontendPublicPath = path.join(__dirname, '..', 'carfront-ionic', 'public', 'backend-port.json');
+    const portInfo = { port: PORT };
+    
+    fs.writeFileSync(portFilePath, JSON.stringify(portInfo, null, 2));
+    console.log(`📝 Port info written to: ${portFilePath}`);
+    
+    // Shkruaj edhe në public folder të frontend-it
+    const frontendPublicDir = path.join(__dirname, '..', 'carfront-ionic', 'public');
+    if (fs.existsSync(frontendPublicDir)) {
+      fs.writeFileSync(frontendPublicPath, JSON.stringify(portInfo, null, 2));
+      console.log(`📝 Port info written to: ${frontendPublicPath}`);
+    } else {
+      // Krijo public folder nëse nuk ekziston
+      try {
+        fs.mkdirSync(frontendPublicDir, { recursive: true });
+        fs.writeFileSync(frontendPublicPath, JSON.stringify(portInfo, null, 2));
+        console.log(`📝 Port info written to: ${frontendPublicPath}`);
+      } catch (err) {
+        console.warn(`⚠️  Could not write to frontend public folder: ${err.message}`);
+      }
+    }
+    
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🌐 Network access: http://192.168.1.216:${PORT}`);
+    });
 
-// Handle server errors
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use. Please stop the other process or use a different port.`);
-    console.error(`   Try: lsof -ti:${PORT} | xargs kill -9`);
-    process.exit(1);
-  } else {
-    console.error('❌ Server error:', err);
+    // Handle server errors
+    server.on('error', (err) => {
+      console.error('❌ Server error:', err);
+      process.exit(1);
+    });
+    
+    // Pastro file-in kur server-i mbyllet
+    const cleanup = () => {
+      if (fs.existsSync(portFilePath)) {
+        fs.unlinkSync(portFilePath);
+      }
+      if (fs.existsSync(frontendPublicPath)) {
+        fs.unlinkSync(frontendPublicPath);
+      }
+    };
+    
+    process.on('SIGINT', () => {
+      cleanup();
+      process.exit(0);
+    });
+    
+    process.on('SIGTERM', () => {
+      cleanup();
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
-});
+}
+
+startServer();

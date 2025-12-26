@@ -1,6 +1,6 @@
 const Car = require("../models/Car");
 
-// =================== GET ALL CARS (Search + Filter + Sort + Pagination) ===================
+// Search + Filter + Sort + Pagination) ===================
 exports.getCars = async (req, res, next) => {
   try {
     const {
